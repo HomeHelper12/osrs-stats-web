@@ -29,7 +29,7 @@ const BOSS_IMAGE_MAP: Record<string, string> = {
   "Nex": "Nex.png",
 
   // Slayer bosses
-  "Kraken": "Cave_kraken_(boss).png",
+  "Kraken": "Kraken.png",
   "Cerberus": "Cerberus.png",
   "Thermonuclear Smoke Devil": "Thermonuclear_smoke_devil.png",
   "Alchemical Hydra": "Alchemical_Hydra_(serpentine).png",
@@ -50,8 +50,8 @@ const BOSS_IMAGE_MAP: Record<string, string> = {
   "King Black Dragon": "King_Black_Dragon.png",
 
   // Raids
-  "Chambers of Xeric": "Great_Olm_(head).png",
-  "Chambers of Xeric: Challenge Mode": "Great_Olm_(head).png",
+  "Chambers of Xeric": "Fighting_Great_Olm.png",
+  "Chambers of Xeric: Challenge Mode": "Fighting_Great_Olm.png",
   "Theatre of Blood": "Verzik_Vitur_(final_form).png",
   "Theatre of Blood: Hard Mode": "Verzik_Vitur_(final_form).png",
   "Tombs of Amascut": "Tumeken%27s_Warden_(level-489).png",
@@ -62,17 +62,17 @@ const BOSS_IMAGE_MAP: Record<string, string> = {
   "Vorkath": "Vorkath.png",
   "Corporeal Beast": "Corporeal_Beast.png",
   "Giant Mole": "Giant_Mole.png",
-  "Kalphite Queen": "Kalphite_Queen_(airborne).png",
+  "Kalphite Queen": "Kalphite_Queen.png",
   "Sarachnis": "Sarachnis.png",
   "Barrows Chests": "Dharok_the_Wretched.png",
   "Nightmare": "The_Nightmare.png",
-  "Phosani's Nightmare": "Phosani%27s_Nightmare.png",
+  "Phosani's Nightmare": "The_Nightmare.png",
   "Skotizo": "Skotizo.png",
   "Hespori": "Hespori.png",
   "Mimic": "The_Mimic.png",
   "Obor": "Obor.png",
   "Bryophyta": "Bryophyta.png",
-  "Scurrius": "Scurrius_(enraged).png",
+  "Scurrius": "Scurrius.png",
   "Deranged Archaeologist": "Deranged_archaeologist.png",
 
   // Dagannoth Kings
@@ -88,11 +88,11 @@ const BOSS_IMAGE_MAP: Record<string, string> = {
 
   // Gauntlet
   "The Gauntlet": "Crystalline_Hunllef.png",
-  "The Corrupted Gauntlet": "Corrupted_Hunllef.png",
+  "The Corrupted Gauntlet": "The_Corrupted_Gauntlet.png",
 
   // Skilling bosses
-  "Wintertodt": "Wintertodt.png",
-  "Tempoross": "Tempoross_(whirlpool).png",
+  "Wintertodt": "Howling_Snow_Storm.gif",
+  "Tempoross": "Tempoross.png",
   "Zalcano": "Zalcano.png",
 
   // Inferno / Fight Caves
@@ -106,14 +106,14 @@ const BOSS_IMAGE_MAP: Record<string, string> = {
   "Phantom Muspah": "Phantom_Muspah_(ranged).png",
 
   // Araxxor
-  "Araxxor": "Araxxor_(melee).png",
+  "Araxxor": "Araxxor.png",
 
   // Varlamore / newer bosses
   "Amoxliatl": "Amoxliatl.png",
   "The Hueycoatl": "The_Hueycoatl.png",
   "Yama": "Yama.png",
-  "Brutus": "Brutus_(monster).png",
-  "The Royal Titans": "Royal_Titans.png",
+  "Brutus": "Brutus.png",
+  "The Royal Titans": "Fighting_Royal_Titans.png",
   "Doom of Mokhaiotl": "Doom_of_Mokhaiotl.png",
   "Lunar Chests": "Blood_Moon.png",
 };
