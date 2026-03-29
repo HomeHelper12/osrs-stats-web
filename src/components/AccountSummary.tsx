@@ -76,7 +76,7 @@ export default function AccountSummary({
         <ProgressBar
           label="Overall Completion"
           value={totalLevel ?? 0}
-          max={2277}
+          max={2376}
           color="bg-osrs-gold"
           showPercentage
         />

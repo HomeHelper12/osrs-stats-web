@@ -33,7 +33,6 @@ export default function DeathLog({ deaths }: DeathLogProps) {
             <tr className="border-b border-gray-800 text-gray-400">
               <th className="px-3 py-2 text-left font-medium">Time</th>
               <th className="px-3 py-2 text-left font-medium">Location</th>
-              <th className="px-3 py-2 text-left font-medium">Killed By</th>
               <th className="px-3 py-2 text-right font-medium">Value Lost</th>
             </tr>
           </thead>
@@ -50,9 +49,6 @@ export default function DeathLog({ deaths }: DeathLogProps) {
                 </td>
                 <td className="px-3 py-2 text-gray-300">
                   {entry.location ?? "Unknown"}
-                </td>
-                <td className="px-3 py-2 text-gray-400">
-                  {entry.killer ?? "--"}
                 </td>
                 <td className="px-3 py-2 text-right font-medium text-red-400">
                   {entry.valueLost != null && entry.valueLost > 0

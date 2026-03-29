@@ -1,80 +1,84 @@
 // =============================================================================
 // OSRS Stats Web - TypeScript interfaces matching Java data models
+// Field names MUST match Java class field names (Gson uses field access)
 // =============================================================================
 
-/** Account metadata - basic info about the player account */
+/** Account metadata - matches Java AccountMeta.java */
 export interface AccountMeta {
   username: string
-  displayName: string
   accountType: string | null // NORMAL, IRONMAN, HARDCORE_IRONMAN, ULTIMATE_IRONMAN, GROUP_IRONMAN
-  combatLevel: number | null
-  totalLevel: number | null
-  totalXp: number | null
-  questPoints: number | null
-  achievementDiaryPoints: number | null
-  combatAchievementPoints: number | null
-  collectionLogSlotsCompleted: number | null
-  collectionLogSlotsTotal: number | null
-  lastUpdated: string | null // Instant -> ISO string
+  combatLevel: number
+  totalLevel: number
+  totalXp: number
+  questPoints: number
+  questsCompleted: number
+  questsTotal: number
+  lastHiscoresFetch: string | null // Instant -> ISO string
+  lastClogSync: string | null
+  lastExport: string | null
 }
 
-/** Individual skill data */
+/** Individual skill data - matches Java SkillData.java */
 export interface SkillData {
   name: string
   level: number
+  boostedLevel: number
   xp: number
   rank: number | null
-  ehp: number | null
+  xpToNextLevel: number
 }
 
-/** Boss kill count data */
+/** Boss kill count data - matches Java BossData.java */
 export interface BossData {
   name: string
   killCount: number
   rank: number | null
-  personalBest: number | null // time in ticks or seconds
+  personalBest: string | null // "1:23" format from chat
+  totalLootValue: number
 }
 
-/** Single collection log item */
+/** Single collection log item - matches Java ClogItem.java */
 export interface ClogItem {
-  id: number
+  itemId: number
   name: string
-  quantity: number
   obtained: boolean
+  quantity: number
 }
 
-/** A page in the collection log (e.g., a boss page) */
+/** A page in the collection log - matches Java ClogPage.java */
 export interface ClogPage {
   name: string
+  obtained: number
+  total: number
   items: ClogItem[]
-  killCounts: Record<string, number>
-  completedCount: number
-  totalCount: number
+  killCounts: string[] | null
+  syncedAt: string | null // Instant -> ISO string
 }
 
-/** Quest completion data */
+/** Quest completion data - matches Java QuestData.java */
 export interface QuestData {
   name: string
-  state: string // NOT_STARTED, IN_PROGRESS, FINISHED
-  questPoints: number | null
+  status: string // NOT_STARTED, IN_PROGRESS, COMPLETED
+  questPoints: number
 }
 
-/** Achievement diary data */
+/** Achievement diary data - matches Java DiaryData.java */
 export interface DiaryData {
   area: string
-  easy: string   // NOT_STARTED, IN_PROGRESS, COMPLETE
-  medium: string
-  hard: string
-  elite: string
+  easyComplete: boolean
+  mediumComplete: boolean
+  hardComplete: boolean
+  eliteComplete: boolean
 }
 
-/** Combat achievement tier data (aggregated per tier) */
+/** Combat achievement tier data - matches Java CombatAchievementData.java */
 export interface CombatAchievementData {
+  tier: string // EASY, MEDIUM, HARD, ELITE, MASTER, GRANDMASTER
   completed: number
   total: number
 }
 
-/** Pet ownership data */
+/** Pet ownership data - matches Java PetData.java */
 export interface PetData {
   name: string
   itemId: number
@@ -83,81 +87,50 @@ export interface PetData {
   obtainedAt: string | null // Instant -> ISO string
 }
 
-/** Loot received entry */
+/** Loot received entry - matches Java LootEntry.java */
 export interface LootEntry {
   source: string
   itemId: number
   itemName: string
   quantity: number
-  geValue: number | null
+  geValue: number
   timestamp: string | null // Instant -> ISO string
 }
 
-/** Death entry */
+/** Death entry - matches Java DeathEntry.java */
 export interface DeathEntry {
   location: string | null
-  killer: string | null
-  lostItems: LootEntry[]
-  valueLost: number | null
+  valueLost: number
   timestamp: string | null // Instant -> ISO string
 }
 
-/** Account event (level up, quest completion, etc.) */
+/** Account event - matches Java AccountEvent.java */
 export interface AccountEvent {
-  type: string
+  type: string // LEVEL_UP, NEW_CLOG_ITEM, BOSS_KC, DEATH, LOOT_DROP, etc.
   description: string
   timestamp: string | null // Instant -> ISO string
-  data: Record<string, unknown> | null
-}
-
-/** Snapshot summary - aggregated stats for quick display */
-export interface SnapshotSummaryData {
-  combatLevel: number | null
-  totalLevel: number | null
-  totalXp: number | null
-  questPoints: number | null
-  questsCompleted: number | null
-  questsTotal: number | null
+  extra: Record<string, unknown> | null
 }
 
 // =============================================================================
-// Full account snapshot - the DTO exported by the Java plugin
+// Full account snapshot — the DTO uploaded by the Java plugin
+// Maps are serialized as JSON objects (Record<string, T>)
 // =============================================================================
 
-/** The full account data export */
 export interface AccountSnapshot {
   meta: AccountMeta
-  summary: SnapshotSummaryData
   skills: Record<string, SkillData>
   bosses: Record<string, BossData>
   collectionLog: Record<string, ClogPage>
-  clogTotalObtained: number | null
-  clogTotalItems: number | null
-  quests: QuestData[]
-  diaries: DiaryData[]
+  quests: Record<string, QuestData>
+  diaries: Record<string, DiaryData>
   combatAchievements: Record<string, CombatAchievementData>
   pets: PetData[]
   lootLog: LootEntry[]
   deaths: DeathEntry[]
   events: AccountEvent[]
-  exportedAt: string | null // Instant -> ISO string
-}
-
-// =============================================================================
-// Summary type for listing snapshots without full data
-// =============================================================================
-
-/** Summary of a snapshot for listing purposes */
-export interface SnapshotSummary {
-  id: string
-  accountId: string
-  username: string
-  displayName: string
-  accountType: string | null
-  totalLevel: number | null
-  totalXp: number | null
-  combatLevel: number | null
-  uploadedAt: string
+  clogTotalObtained: number
+  clogTotalItems: number
 }
 
 // =============================================================================

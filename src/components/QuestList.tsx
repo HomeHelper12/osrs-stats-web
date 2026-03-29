@@ -9,13 +9,14 @@ interface QuestListProps {
   questPoints: number | null;
 }
 
-type QuestState = "FINISHED" | "IN_PROGRESS" | "NOT_STARTED";
+// Java uses "COMPLETED", map to our display groups
+type QuestGroup = "COMPLETED" | "IN_PROGRESS" | "NOT_STARTED";
 
-const STATE_CONFIG: Record<
-  QuestState,
+const GROUP_CONFIG: Record<
+  QuestGroup,
   { label: string; color: string; textColor: string }
 > = {
-  FINISHED: {
+  COMPLETED: {
     label: "Completed",
     color: "bg-green-900/30",
     textColor: "text-green-400",
@@ -33,20 +34,21 @@ const STATE_CONFIG: Record<
 };
 
 export default function QuestList({ quests, questPoints }: QuestListProps) {
-  const [expandedSection, setExpandedSection] = useState<QuestState | null>(
-    "FINISHED"
+  const [expandedSection, setExpandedSection] = useState<QuestGroup | null>(
+    "COMPLETED"
   );
 
-  const grouped: Record<QuestState, QuestData[]> = {
-    FINISHED: [],
+  const grouped: Record<QuestGroup, QuestData[]> = {
+    COMPLETED: [],
     IN_PROGRESS: [],
     NOT_STARTED: [],
   };
 
   quests.forEach((quest) => {
-    const state = (quest.state ?? "NOT_STARTED") as QuestState;
-    if (grouped[state]) {
-      grouped[state].push(quest);
+    // Java QuestData uses "status" field with values COMPLETED, IN_PROGRESS, NOT_STARTED
+    const status = (quest.status ?? "NOT_STARTED") as QuestGroup;
+    if (grouped[status]) {
+      grouped[status].push(quest);
     } else {
       grouped.NOT_STARTED.push(quest);
     }
@@ -57,7 +59,7 @@ export default function QuestList({ quests, questPoints }: QuestListProps) {
     arr.sort((a, b) => a.name.localeCompare(b.name))
   );
 
-  const questsCompleted = grouped.FINISHED.length;
+  const questsCompleted = grouped.COMPLETED.length;
   const questsTotal = quests.length;
 
   return (
@@ -85,16 +87,16 @@ export default function QuestList({ quests, questPoints }: QuestListProps) {
       </div>
 
       <div className="space-y-2">
-        {(Object.keys(grouped) as QuestState[]).map((state) => {
-          const config = STATE_CONFIG[state];
-          const items = grouped[state];
-          const isExpanded = expandedSection === state;
+        {(Object.keys(grouped) as QuestGroup[]).map((group) => {
+          const config = GROUP_CONFIG[group];
+          const items = grouped[group];
+          const isExpanded = expandedSection === group;
 
           return (
-            <div key={state} className="rounded-lg border border-gray-700/30">
+            <div key={group} className="rounded-lg border border-gray-700/30">
               <button
                 onClick={() =>
-                  setExpandedSection(isExpanded ? null : state)
+                  setExpandedSection(isExpanded ? null : group)
                 }
                 className="flex w-full items-center justify-between px-4 py-2.5 text-left hover:bg-gray-800/50 transition-colors rounded-lg"
               >

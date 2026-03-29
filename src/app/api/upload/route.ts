@@ -58,7 +58,7 @@ export async function POST(request: Request) {
       .upsert(
         {
           username: lowerUsername,
-          display_name: snapshot.meta.displayName || username,
+          display_name: snapshot.meta.username || username,
           account_type: snapshot.meta.accountType || null,
           last_updated: new Date().toISOString(),
         },

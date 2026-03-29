@@ -82,24 +82,28 @@ export default function ProfilePage({
 
   const { account, snapshot, uploadedAt } = data;
 
-  // Use snapshot-level clog totals, or compute from pages as fallback
+  // Use snapshot-level clog totals from VarP, or compute from pages as fallback
   let clogTotalObtained = snapshot.clogTotalObtained ?? 0;
   let clogTotalItems = snapshot.clogTotalItems ?? 0;
   if (clogTotalObtained === 0 && clogTotalItems === 0 && snapshot.collectionLog) {
     Object.values(snapshot.collectionLog).forEach((page) => {
-      clogTotalObtained += page.completedCount ?? 0;
-      clogTotalItems += page.totalCount ?? 0;
+      clogTotalObtained += page.obtained ?? 0;
+      clogTotalItems += page.total ?? 0;
     });
   }
+
+  // Java sends quests and diaries as Maps (objects), components expect arrays
+  const questsArray = snapshot.quests ? Object.values(snapshot.quests) : [];
+  const diariesArray = snapshot.diaries ? Object.values(snapshot.diaries) : [];
 
   return (
     <div className="space-y-6 pb-8">
       {/* Account Summary */}
       <AccountSummary
         account={account}
-        combatLevel={snapshot.summary?.combatLevel ?? snapshot.meta?.combatLevel ?? null}
-        totalLevel={snapshot.summary?.totalLevel ?? snapshot.meta?.totalLevel ?? null}
-        totalXp={snapshot.summary?.totalXp ?? snapshot.meta?.totalXp ?? null}
+        combatLevel={snapshot.meta?.combatLevel ?? null}
+        totalLevel={snapshot.meta?.totalLevel ?? null}
+        totalXp={snapshot.meta?.totalXp ?? null}
         uploadedAt={uploadedAt}
       />
 
@@ -120,13 +124,13 @@ export default function ProfilePage({
 
       {/* Quests and Diaries side by side */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {snapshot.quests && (
+        {questsArray.length > 0 && (
           <QuestList
-            quests={snapshot.quests}
-            questPoints={snapshot.summary?.questPoints ?? snapshot.meta?.questPoints ?? null}
+            quests={questsArray}
+            questPoints={snapshot.meta?.questPoints ?? null}
           />
         )}
-        {snapshot.diaries && <DiaryTable diaries={snapshot.diaries} />}
+        {diariesArray.length > 0 && <DiaryTable diaries={diariesArray} />}
       </div>
 
       {/* Combat Achievements and Pets side by side */}

@@ -6,7 +6,13 @@ interface DiaryTableProps {
   diaries: DiaryData[];
 }
 
-const TIERS = ["easy", "medium", "hard", "elite"] as const;
+// Map tier names to the Java boolean field names
+const TIERS = [
+  { key: "easyComplete" as const, label: "Easy" },
+  { key: "mediumComplete" as const, label: "Medium" },
+  { key: "hardComplete" as const, label: "Hard" },
+  { key: "eliteComplete" as const, label: "Elite" },
+];
 
 export default function DiaryTable({ diaries }: DiaryTableProps) {
   const sorted = [...diaries].sort((a, b) => a.area.localeCompare(b.area));
@@ -24,19 +30,21 @@ export default function DiaryTable({ diaries }: DiaryTableProps) {
               <th className="px-3 py-2 text-left font-medium">Area</th>
               {TIERS.map((tier) => (
                 <th
-                  key={tier}
-                  className="px-3 py-2 text-center font-medium capitalize"
+                  key={tier.key}
+                  className="px-3 py-2 text-center font-medium"
                 >
-                  {tier}
+                  {tier.label}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
             {sorted.map((diary) => {
-              const allComplete = TIERS.every(
-                (tier) => diary[tier] === "COMPLETE"
-              );
+              const allComplete =
+                diary.easyComplete &&
+                diary.mediumComplete &&
+                diary.hardComplete &&
+                diary.eliteComplete;
 
               return (
                 <tr
@@ -47,9 +55,9 @@ export default function DiaryTable({ diaries }: DiaryTableProps) {
                 >
                   <td className="px-3 py-2 text-gray-300">{diary.area}</td>
                   {TIERS.map((tier) => {
-                    const complete = diary[tier] === "COMPLETE";
+                    const complete = diary[tier.key];
                     return (
-                      <td key={tier} className="px-3 py-2 text-center">
+                      <td key={tier.key} className="px-3 py-2 text-center">
                         {complete ? (
                           <span className="text-green-400 font-bold">
                             &#10003;

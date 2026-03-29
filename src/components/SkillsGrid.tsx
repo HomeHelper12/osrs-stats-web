@@ -16,7 +16,7 @@ const SKILL_ORDER: string[][] = [
   ["Prayer", "Crafting", "Firemaking"],
   ["Magic", "Fletching", "Woodcutting"],
   ["Runecraft", "Slayer", "Farming"],
-  ["Construction", "Hunter"],
+  ["Construction", "Hunter", "Sailing"],
 ];
 
 function getSkillIconUrl(name: string): string {
@@ -27,11 +27,13 @@ function getSkillIconUrl(name: string): string {
 export default function SkillsGrid({ skills }: SkillsGridProps) {
   const [hoveredSkill, setHoveredSkill] = useState<string | null>(null);
 
-  // Calculate total level
-  const totalLevel = Object.values(skills).reduce(
-    (sum, s) => sum + (s.level || 0),
-    0
-  );
+  // Use the "Overall" entry if available, else sum all non-Overall skills
+  const overall = skills["Overall"];
+  const totalLevel = overall
+    ? overall.level
+    : Object.entries(skills)
+        .filter(([k]) => k !== "Overall")
+        .reduce((sum, [, s]) => sum + (s.level || 0), 0);
 
   return (
     <section className="rounded-xl border border-gray-800 bg-gray-900 p-6">
@@ -40,8 +42,8 @@ export default function SkillsGrid({ skills }: SkillsGridProps) {
       </h2>
       <div className="grid grid-cols-3 gap-1.5">
         {SKILL_ORDER.flat().map((skillName) => {
-          const key = skillName.toLowerCase();
-          const skill = skills[key];
+          // Java stores skill keys with original casing (e.g. "Attack")
+          const skill = skills[skillName];
           const level = skill?.level ?? 1;
           const xp = skill?.xp ?? 0;
           const isMaxed = level >= 99;

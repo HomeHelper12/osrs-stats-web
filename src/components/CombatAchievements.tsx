@@ -7,22 +7,23 @@ interface CombatAchievementsProps {
   combatAchievements: Record<string, CombatAchievementData>;
 }
 
+// Java stores tiers with UPPERCASE keys: EASY, MEDIUM, HARD, etc.
 const TIER_ORDER = [
-  "easy",
-  "medium",
-  "hard",
-  "elite",
-  "master",
-  "grandmaster",
+  { key: "EASY", label: "Easy" },
+  { key: "MEDIUM", label: "Medium" },
+  { key: "HARD", label: "Hard" },
+  { key: "ELITE", label: "Elite" },
+  { key: "MASTER", label: "Master" },
+  { key: "GRANDMASTER", label: "Grandmaster" },
 ] as const;
 
 const TIER_COLORS: Record<string, string> = {
-  easy: "bg-green-600",
-  medium: "bg-blue-600",
-  hard: "bg-purple-600",
-  elite: "bg-yellow-600",
-  master: "bg-red-600",
-  grandmaster: "bg-cyan-500",
+  EASY: "bg-green-600",
+  MEDIUM: "bg-blue-600",
+  HARD: "bg-purple-600",
+  ELITE: "bg-yellow-600",
+  MASTER: "bg-red-600",
+  GRANDMASTER: "bg-cyan-500",
 };
 
 export default function CombatAchievements({
@@ -32,7 +33,7 @@ export default function CombatAchievements({
   let totalAll = 0;
 
   TIER_ORDER.forEach((tier) => {
-    const data = combatAchievements[tier];
+    const data = combatAchievements[tier.key];
     if (data) {
       totalCompleted += data.completed;
       totalAll += data.total;
@@ -47,16 +48,16 @@ export default function CombatAchievements({
 
       <div className="space-y-3">
         {TIER_ORDER.map((tier) => {
-          const data = combatAchievements[tier];
+          const data = combatAchievements[tier.key];
           if (!data) return null;
 
           return (
             <ProgressBar
-              key={tier}
-              label={tier.charAt(0).toUpperCase() + tier.slice(1)}
+              key={tier.key}
+              label={tier.label}
               value={data.completed}
               max={data.total}
-              color={TIER_COLORS[tier] || "bg-gray-600"}
+              color={TIER_COLORS[tier.key] || "bg-gray-600"}
             />
           );
         })}
