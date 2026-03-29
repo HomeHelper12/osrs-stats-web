@@ -118,7 +118,7 @@ export default function CollectionLogPanel({
                         className={`glass-light flex items-center gap-1.5 rounded-lg px-2 py-1.5 ${
                           item.obtained
                             ? "border border-green-500/20 bg-green-900/15"
-                            : "border border-white/5 opacity-50"
+                            : "border border-white/5"
                         }`}
                         title={
                           item.obtained
@@ -132,12 +132,12 @@ export default function CollectionLogPanel({
                           alt={item.name}
                           width={24}
                           height={24}
-                          className="item-icon"
+                          className={`item-icon ${item.obtained ? "" : "grayscale opacity-60"}`}
                           loading="lazy"
                         />
                         <span
                           className={`text-xs leading-tight ${
-                            item.obtained ? "text-green-300" : "text-gray-600"
+                            item.obtained ? "text-green-300" : "text-gray-400"
                           }`}
                         >
                           {item.name}

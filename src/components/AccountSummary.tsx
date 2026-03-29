@@ -1,14 +1,12 @@
 "use client";
 
-import { AccountRow } from "@/lib/types";
+import { AccountRow, AccountSnapshot } from "@/lib/types";
 import { formatNumber, relativeTime } from "@/lib/utils";
 import ProgressBar from "./ProgressBar";
 
 interface AccountSummaryProps {
   account: AccountRow;
-  combatLevel: number | null;
-  totalLevel: number | null;
-  totalXp: number | null;
+  snapshot: AccountSnapshot;
   uploadedAt: string;
 }
 
@@ -43,16 +41,86 @@ const ACCOUNT_TYPE_STYLES: Record<
   },
 };
 
+/**
+ * Calculate overall account completion matching the Java formula:
+ * Skills 20%, Quests 20%, CLog 25%, Diaries 15%, CAs 20%
+ */
+function calcCompletion(snapshot: AccountSnapshot): number {
+  // Skills: count of level-99 skills / 24
+  let skillPct = 0;
+  if (snapshot.skills) {
+    const maxed = Object.values(snapshot.skills).filter(
+      (s) => s.name !== "Overall" && s.level >= 99
+    ).length;
+    skillPct = Math.min(1, maxed / 24);
+  }
+
+  // Quests: completed / total from meta
+  let questPct = 0;
+  if (snapshot.meta?.questsTotal > 0) {
+    questPct = Math.min(1, snapshot.meta.questsCompleted / snapshot.meta.questsTotal);
+  }
+
+  // Collection log: obtained / total across all pages
+  let clogPct = 0;
+  if (snapshot.collectionLog) {
+    let obtained = snapshot.clogTotalObtained ?? 0;
+    let total = snapshot.clogTotalItems ?? 0;
+    if (obtained === 0 && total === 0) {
+      Object.values(snapshot.collectionLog).forEach((page) => {
+        obtained += page.obtained ?? 0;
+        total += page.total ?? 0;
+      });
+    }
+    if (total > 0) clogPct = Math.min(1, obtained / total);
+  }
+
+  // Diaries: completed tiers / (areas * 4)
+  let diaryPct = 0;
+  if (snapshot.diaries) {
+    const areas = Object.values(snapshot.diaries);
+    const diaryTotal = areas.length * 4;
+    if (diaryTotal > 0) {
+      let tiersComplete = 0;
+      areas.forEach((d) => {
+        if (d.easyComplete) tiersComplete++;
+        if (d.mediumComplete) tiersComplete++;
+        if (d.hardComplete) tiersComplete++;
+        if (d.eliteComplete) tiersComplete++;
+      });
+      diaryPct = Math.min(1, tiersComplete / diaryTotal);
+    }
+  }
+
+  // Combat achievements: completed / total
+  let caPct = 0;
+  if (snapshot.combatAchievements) {
+    let caCompleted = 0;
+    let caTotal = 0;
+    Object.values(snapshot.combatAchievements).forEach((tier) => {
+      caCompleted += tier.completed;
+      caTotal += tier.total;
+    });
+    if (caTotal > 0) caPct = Math.min(1, caCompleted / caTotal);
+  }
+
+  return (skillPct * 0.20) + (questPct * 0.20) + (clogPct * 0.25)
+    + (diaryPct * 0.15) + (caPct * 0.20);
+}
+
 export default function AccountSummary({
   account,
-  combatLevel,
-  totalLevel,
-  totalXp,
+  snapshot,
   uploadedAt,
 }: AccountSummaryProps) {
   const accountType =
     ACCOUNT_TYPE_STYLES[account.account_type ?? "NORMAL"] ??
     ACCOUNT_TYPE_STYLES.NORMAL;
+
+  const combatLevel = snapshot.meta?.combatLevel ?? null;
+  const totalLevel = snapshot.meta?.totalLevel ?? null;
+  const totalXp = snapshot.meta?.totalXp ?? null;
+  const completionPct = calcCompletion(snapshot);
 
   return (
     <section
@@ -112,12 +180,12 @@ export default function AccountSummary({
         </div>
       </div>
 
-      {/* Overall completion */}
+      {/* Overall completion — matches Java weighted formula */}
       <div className="mt-5">
         <ProgressBar
           label="Overall Completion"
-          value={totalLevel ?? 0}
-          max={2376}
+          value={Math.round(completionPct * 1000)}
+          max={1000}
           color="bg-osrs-gold"
           showPercentage
         />

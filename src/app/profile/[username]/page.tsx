@@ -340,9 +340,7 @@ export default function ProfilePage({
       {/* ----------------------------------------------------------------- */}
       <AccountSummary
         account={account}
-        combatLevel={snapshot.meta?.combatLevel ?? null}
-        totalLevel={snapshot.meta?.totalLevel ?? null}
-        totalXp={snapshot.meta?.totalXp ?? null}
+        snapshot={snapshot}
         uploadedAt={uploadedAt}
       />
 

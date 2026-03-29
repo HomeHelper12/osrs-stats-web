@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { BossData } from "@/lib/types";
 import { formatNumber } from "@/lib/utils";
 
@@ -12,6 +13,37 @@ function formatBossName(key: string): string {
     .split("_")
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
+}
+
+/** Convert boss name to OSRS Wiki image URL */
+function bossImageUrl(name: string): string {
+  const wikiName = name.replace(/ /g, "_");
+  return `https://oldschool.runescape.wiki/images/${encodeURIComponent(wikiName)}.png`;
+}
+
+/** Fallback component for boss images that fail to load */
+function BossIcon({ name }: { name: string }) {
+  const [failed, setFailed] = useState(false);
+
+  if (failed) {
+    return (
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg glass-light text-lg font-bold text-gray-500">
+        {name.charAt(0)}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={bossImageUrl(name)}
+      alt={name}
+      width={48}
+      height={48}
+      className="h-12 w-12 shrink-0 rounded-lg object-cover"
+      loading="lazy"
+      onError={() => setFailed(true)}
+    />
+  );
 }
 
 const RANK_BORDER_COLORS = [
@@ -57,18 +89,25 @@ export default function BossGrid({ bosses }: BossGridProps) {
                 : undefined
             }
           >
-            {/* Boss name */}
-            <p className="truncate text-sm font-medium text-gray-300">
-              {formatBossName(key)}
-            </p>
+            <div className="flex items-start gap-3">
+              {/* Boss image */}
+              <BossIcon name={key} />
 
-            {/* Kill count - large */}
-            <p className="mt-1 text-2xl font-bold text-gray-100 tabular-nums">
-              {formatNumber(data.killCount)}
-            </p>
+              <div className="min-w-0 flex-1">
+                {/* Boss name */}
+                <p className="truncate text-sm font-medium text-gray-300">
+                  {formatBossName(key)}
+                </p>
+
+                {/* Kill count */}
+                <p className="mt-0.5 text-2xl font-bold text-gray-100 tabular-nums">
+                  {formatNumber(data.killCount)}
+                </p>
+              </div>
+            </div>
 
             {/* Rank & PB */}
-            <div className="mt-1.5 flex flex-wrap gap-3 text-xs text-gray-500">
+            <div className="mt-2 flex flex-wrap gap-3 text-xs text-gray-500">
               {data.rank != null && (
                 <span className="flex items-center gap-1">
                   <span className="text-gray-600">Rank</span>
