@@ -44,24 +44,32 @@ export async function POST(request: Request) {
     const lowerPlayer = playerName.toLowerCase()
 
     // 1. Upsert all items into player_clog_items (batch to avoid payload limits)
-    const BATCH_SIZE = 100
+    const BATCH_SIZE = 200
+    const now = new Date().toISOString()
     const upsertRows = items.map((item) => ({
       player_name: lowerPlayer,
       item_id: item.itemId,
       item_name: item.itemName,
       quantity: item.quantity,
-      synced_at: new Date().toISOString(),
+      synced_at: now,
     }))
 
+    // Use Promise.all for parallel batches
+    const batchPromises = []
     for (let i = 0; i < upsertRows.length; i += BATCH_SIZE) {
       const batch = upsertRows.slice(i, i + BATCH_SIZE)
-      const { error: upsertError } = await supabase
-        .from('player_clog_items')
-        .upsert(batch, { onConflict: 'player_name,item_id' })
+      batchPromises.push(
+        supabase
+          .from('player_clog_items')
+          .upsert(batch, { onConflict: 'player_name,item_id', ignoreDuplicates: false })
+      )
+    }
 
+    const batchResults = await Promise.all(batchPromises)
+    for (const { error: upsertError } of batchResults) {
       if (upsertError) {
-        console.error('Clog upsert error (batch', Math.floor(i / BATCH_SIZE) + 1, '):', upsertError)
-        return Response.json({ error: 'Internal error upserting collection log items' }, { status: 500 })
+        console.error('Clog upsert error:', JSON.stringify(upsertError))
+        return Response.json({ error: 'Internal error upserting collection log items: ' + upsertError.message }, { status: 500 })
       }
     }
 
