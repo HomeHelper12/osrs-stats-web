@@ -15,34 +15,142 @@ function formatBossName(key: string): string {
     .join(" ");
 }
 
-/** Convert boss name to OSRS Wiki image URL */
+/**
+ * Maps boss names (as they appear in RuneLite data) to the correct
+ * OSRS Wiki image filename for the actual boss monster.
+ * Uses the monster/NPC image, NOT the activity or location image.
+ */
+const BOSS_IMAGE_MAP: Record<string, string> = {
+  // GWD
+  "General Graardor": "General_Graardor.png",
+  "K'ril Tsutsaroth": "K%27ril_Tsutsaroth.png",
+  "Kree'Arra": "Kree%27arra.png",
+  "Commander Zilyana": "Commander_Zilyana.png",
+  "Nex": "Nex.png",
+
+  // Slayer bosses
+  "Kraken": "Cave_kraken_(boss).png",
+  "Cerberus": "Cerberus.png",
+  "Thermonuclear Smoke Devil": "Thermonuclear_smoke_devil.png",
+  "Alchemical Hydra": "Alchemical_Hydra_(serpentine).png",
+  "Grotesque Guardians": "Dusk_(phase_2).png",
+  "Abyssal Sire": "Abyssal_Sire.png",
+
+  // Wildy bosses
+  "Venenatis": "Venenatis.png",
+  "Vet'ion": "Vet%27ion.png",
+  "Scorpia": "Scorpia.png",
+  "Callisto": "Callisto.png",
+  "Chaos Elemental": "Chaos_Elemental.png",
+  "Chaos Fanatic": "Chaos_Fanatic.png",
+  "Crazy Archaeologist": "Crazy_archaeologist.png",
+  "Spindel": "Spindel.png",
+  "Calvar'ion": "Calvar%27ion.png",
+  "Artio": "Artio.png",
+  "King Black Dragon": "King_Black_Dragon.png",
+
+  // Raids
+  "Chambers of Xeric": "Great_Olm_(head).png",
+  "Chambers of Xeric: Challenge Mode": "Great_Olm_(head).png",
+  "Theatre of Blood": "Verzik_Vitur_(final_form).png",
+  "Theatre of Blood: Hard Mode": "Verzik_Vitur_(final_form).png",
+  "Tombs of Amascut": "Tumeken%27s_Warden_(level-489).png",
+  "Tombs of Amascut: Expert Mode": "Tumeken%27s_Warden_(level-489).png",
+
+  // Popular bosses
+  "Zulrah": "Zulrah_(serpentine).png",
+  "Vorkath": "Vorkath.png",
+  "Corporeal Beast": "Corporeal_Beast.png",
+  "Giant Mole": "Giant_Mole.png",
+  "Kalphite Queen": "Kalphite_Queen_(airborne).png",
+  "Sarachnis": "Sarachnis.png",
+  "Barrows Chests": "Dharok_the_Wretched.png",
+  "Nightmare": "The_Nightmare.png",
+  "Phosani's Nightmare": "Phosani%27s_Nightmare.png",
+  "Skotizo": "Skotizo.png",
+  "Hespori": "Hespori.png",
+  "Mimic": "The_Mimic.png",
+  "Obor": "Obor.png",
+  "Bryophyta": "Bryophyta.png",
+  "Scurrius": "Scurrius_(enraged).png",
+  "Deranged Archaeologist": "Deranged_archaeologist.png",
+
+  // Dagannoth Kings
+  "Dagannoth Rex": "Dagannoth_Rex.png",
+  "Dagannoth Prime": "Dagannoth_Prime.png",
+  "Dagannoth Supreme": "Dagannoth_Supreme.png",
+
+  // DT2 bosses
+  "Duke Sucellus": "Duke_Sucellus.png",
+  "Vardorvis": "Vardorvis.png",
+  "The Leviathan": "The_Leviathan.png",
+  "The Whisperer": "The_Whisperer.png",
+
+  // Gauntlet
+  "The Gauntlet": "Crystalline_Hunllef.png",
+  "The Corrupted Gauntlet": "Corrupted_Hunllef.png",
+
+  // Skilling bosses
+  "Wintertodt": "Wintertodt.png",
+  "Tempoross": "Tempoross_(whirlpool).png",
+  "Zalcano": "Zalcano.png",
+
+  // Inferno / Fight Caves
+  "TzTok-Jad": "TzTok-Jad.png",
+  "TzKal-Zuk": "TzKal-Zuk.png",
+
+  // Colosseum
+  "Sol Heredit": "Sol_Heredit.png",
+
+  // Phantom Muspah
+  "Phantom Muspah": "Phantom_Muspah_(ranged).png",
+
+  // Araxxor
+  "Araxxor": "Araxxor_(melee).png",
+
+  // Varlamore / newer bosses
+  "Amoxliatl": "Amoxliatl.png",
+  "The Hueycoatl": "The_Hueycoatl.png",
+  "Yama": "Yama.png",
+  "Brutus": "Brutus_(monster).png",
+  "The Royal Titans": "Royal_Titans.png",
+  "Doom of Mokhaiotl": "Doom_of_Mokhaiotl.png",
+  "Lunar Chests": "Blood_Moon.png",
+};
+
+const WIKI_BASE = "https://oldschool.runescape.wiki/images/";
+
 function bossImageUrl(name: string): string {
-  const wikiName = name.replace(/ /g, "_");
-  return `https://oldschool.runescape.wiki/images/${encodeURIComponent(wikiName)}.png`;
+  const mapped = BOSS_IMAGE_MAP[name];
+  if (mapped) return WIKI_BASE + mapped;
+  // Fallback: try the name directly
+  return WIKI_BASE + encodeURIComponent(name.replace(/ /g, "_")) + ".png";
 }
 
-/** Fallback component for boss images that fail to load */
+/** Boss icon with proper sizing and fallback */
 function BossIcon({ name }: { name: string }) {
   const [failed, setFailed] = useState(false);
 
   if (failed) {
     return (
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg glass-light text-lg font-bold text-gray-500">
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg glass-light text-base font-bold text-gray-500">
         {name.charAt(0)}
       </div>
     );
   }
 
   return (
-    <img
-      src={bossImageUrl(name)}
-      alt={name}
-      width={48}
-      height={48}
-      className="h-12 w-12 shrink-0 rounded-lg object-cover"
-      loading="lazy"
-      onError={() => setFailed(true)}
-    />
+    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg glass-light overflow-hidden">
+      <img
+        src={bossImageUrl(name)}
+        alt={name}
+        width={44}
+        height={44}
+        className="h-full w-full object-contain"
+        loading="lazy"
+        onError={() => setFailed(true)}
+      />
+    </div>
   );
 }
 
