@@ -157,6 +157,50 @@ export async function generateRandomTask(
 }
 
 /**
+ * Verify a task against a pre-loaded set of obtained item IDs (in-memory, no DB query).
+ */
+export function verifyTaskCompletionInMemory(
+  obtainedItemIds: Set<number>,
+  task: TaskDefinition
+): boolean {
+  if (task.verification_method !== 'collection-log') return false
+  if (!task.item_ids || task.item_ids.length === 0) return false
+
+  let count = 0
+  for (const id of task.item_ids) {
+    if (obtainedItemIds.has(id)) count++
+  }
+  return count >= task.required_count
+}
+
+/**
+ * Load all obtained item IDs for a player as a Set (single DB query).
+ */
+export async function loadPlayerItemIds(
+  supabase: SupabaseClient,
+  playerName: string
+): Promise<Set<number>> {
+  const items: number[] = []
+  let offset = 0
+  const PAGE_SIZE = 1000
+
+  while (true) {
+    const { data, error } = await supabase
+      .from('player_clog_items')
+      .select('item_id')
+      .eq('player_name', playerName)
+      .range(offset, offset + PAGE_SIZE - 1)
+
+    if (error || !data || data.length === 0) break
+    data.forEach((r) => items.push(r.item_id))
+    if (data.length < PAGE_SIZE) break
+    offset += PAGE_SIZE
+  }
+
+  return new Set(items)
+}
+
+/**
  * Validate the x-api-key header against the configured API_SECRET_KEY.
  * Returns null if valid, or a Response with 401 if invalid.
  */

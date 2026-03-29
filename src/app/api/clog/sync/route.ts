@@ -1,5 +1,5 @@
 import { createAdminClient } from '@/lib/supabase'
-import { validateApiKey, verifyTaskCompletion, type TaskDefinition } from '@/lib/task-utils'
+import { validateApiKey, verifyTaskCompletionInMemory, loadPlayerItemIds, type TaskDefinition } from '@/lib/task-utils'
 
 const TIERS = ['easy', 'medium', 'hard', 'elite', 'master'] as const
 
@@ -43,7 +43,8 @@ export async function POST(request: Request) {
     const supabase = createAdminClient()
     const lowerPlayer = playerName.toLowerCase()
 
-    // 1. Upsert all items into player_clog_items
+    // 1. Upsert all items into player_clog_items (batch to avoid payload limits)
+    const BATCH_SIZE = 100
     const upsertRows = items.map((item) => ({
       player_name: lowerPlayer,
       item_id: item.itemId,
@@ -52,68 +53,51 @@ export async function POST(request: Request) {
       synced_at: new Date().toISOString(),
     }))
 
-    const { error: upsertError } = await supabase
-      .from('player_clog_items')
-      .upsert(upsertRows, { onConflict: 'player_name,item_id' })
+    for (let i = 0; i < upsertRows.length; i += BATCH_SIZE) {
+      const batch = upsertRows.slice(i, i + BATCH_SIZE)
+      const { error: upsertError } = await supabase
+        .from('player_clog_items')
+        .upsert(batch, { onConflict: 'player_name,item_id' })
 
-    if (upsertError) {
-      console.error('Clog upsert error:', upsertError)
-      return Response.json({ error: 'Internal error upserting collection log items' }, { status: 500 })
+      if (upsertError) {
+        console.error('Clog upsert error (batch', Math.floor(i / BATCH_SIZE) + 1, '):', upsertError)
+        return Response.json({ error: 'Internal error upserting collection log items' }, { status: 500 })
+      }
     }
 
-    // 2. Auto-verify active tasks for this player
-    const { data: activeTasks, error: activeError } = await supabase
+    // 2. Load all player's obtained item IDs (single query for in-memory verification)
+    const obtainedIds = await loadPlayerItemIds(supabase, lowerPlayer)
+
+    const tasksAutoCompleted: { taskId: string; taskName: string; tier: string }[] = []
+
+    // 3. Auto-verify active tasks for this player
+    const { data: activeTasks } = await supabase
       .from('player_tasks')
       .select('*, task_definitions(*)')
       .eq('player_name', lowerPlayer)
       .eq('status', 'active')
 
-    if (activeError) {
-      console.error('Error fetching active tasks:', activeError)
-      return Response.json({ error: 'Internal error fetching active tasks' }, { status: 500 })
-    }
-
-    const tasksAutoCompleted: { taskId: string; taskName: string; tier: string }[] = []
-
-    // Check each active task with collection-log verification
     for (const playerTask of activeTasks ?? []) {
       const taskDef = playerTask.task_definitions as TaskDefinition
-      if (taskDef.verification_method !== 'collection-log') continue
+      if (!verifyTaskCompletionInMemory(obtainedIds, taskDef)) continue
 
-      const isComplete = await verifyTaskCompletion(supabase, lowerPlayer, taskDef)
-      if (isComplete) {
-        const { error: completeError } = await supabase
-          .from('player_tasks')
-          .update({
-            status: 'completed',
-            completed_at: new Date().toISOString(),
-          })
-          .eq('id', playerTask.id)
+      const { error: completeError } = await supabase
+        .from('player_tasks')
+        .update({ status: 'completed', completed_at: new Date().toISOString() })
+        .eq('id', playerTask.id)
 
-        if (!completeError) {
-          tasksAutoCompleted.push({
-            taskId: taskDef.id,
-            taskName: taskDef.name,
-            tier: taskDef.tier,
-          })
-        }
+      if (!completeError) {
+        tasksAutoCompleted.push({ taskId: taskDef.id, taskName: taskDef.name, tier: taskDef.tier })
       }
     }
 
-    // 3. Scan ALL collection-log tasks to find any that are already completable
-    //    but the player has never had a record for (handles pre-existing drops)
-    const { data: allClogTasks, error: allTasksError } = await supabase
+    // 4. Scan ALL collection-log tasks for pre-existing completions
+    const { data: allClogTasks } = await supabase
       .from('task_definitions')
       .select('*')
       .eq('verification_method', 'collection-log')
 
-    if (allTasksError) {
-      console.error('Error fetching all clog tasks:', allTasksError)
-      // Non-fatal: we already synced items and checked active tasks
-    }
-
     if (allClogTasks) {
-      // Get all task_ids this player already has a record for (any status)
       const { data: existingRecords } = await supabase
         .from('player_tasks')
         .select('task_id')
@@ -121,35 +105,28 @@ export async function POST(request: Request) {
 
       const existingTaskIds = new Set((existingRecords ?? []).map((r) => r.task_id))
 
-      // Check tasks the player has no record for
+      // Batch insert completed tasks
+      const toInsert: { player_name: string; task_id: string; tier: string; status: string; assigned_at: string; completed_at: string }[] = []
+
       for (const taskDef of allClogTasks) {
         if (existingTaskIds.has(taskDef.id)) continue
+        if (!verifyTaskCompletionInMemory(obtainedIds, taskDef as TaskDefinition)) continue
 
-        const isComplete = await verifyTaskCompletion(
-          supabase,
-          lowerPlayer,
-          taskDef as TaskDefinition
-        )
-        if (isComplete) {
-          const { error: insertError } = await supabase
-            .from('player_tasks')
-            .insert({
-              player_name: lowerPlayer,
-              task_id: taskDef.id,
-              tier: taskDef.tier,
-              status: 'completed',
-              assigned_at: new Date().toISOString(),
-              completed_at: new Date().toISOString(),
-            })
+        const now = new Date().toISOString()
+        toInsert.push({
+          player_name: lowerPlayer,
+          task_id: taskDef.id,
+          tier: taskDef.tier,
+          status: 'completed',
+          assigned_at: now,
+          completed_at: now,
+        })
+        tasksAutoCompleted.push({ taskId: taskDef.id, taskName: taskDef.name, tier: taskDef.tier })
+      }
 
-          if (!insertError) {
-            tasksAutoCompleted.push({
-              taskId: taskDef.id,
-              taskName: taskDef.name,
-              tier: taskDef.tier,
-            })
-          }
-        }
+      // Batch insert in chunks
+      for (let i = 0; i < toInsert.length; i += 100) {
+        await supabase.from('player_tasks').insert(toInsert.slice(i, i + 100))
       }
     }
 
