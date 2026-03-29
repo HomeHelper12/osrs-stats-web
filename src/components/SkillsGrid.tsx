@@ -20,14 +20,12 @@ const SKILL_ORDER: string[][] = [
 ];
 
 function getSkillIconUrl(name: string): string {
-  const formatted = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
-  return `https://oldschool.runescape.wiki/images/${formatted}_icon.png`;
+  return `https://oldschool.runescape.wiki/images/${name}_icon.png`;
 }
 
 export default function SkillsGrid({ skills }: SkillsGridProps) {
   const [hoveredSkill, setHoveredSkill] = useState<string | null>(null);
 
-  // Use the "Overall" entry if available, else sum all non-Overall skills
   const overall = skills["Overall"];
   const totalLevel = overall
     ? overall.level
@@ -36,13 +34,13 @@ export default function SkillsGrid({ skills }: SkillsGridProps) {
         .reduce((sum, [, s]) => sum + (s.level || 0), 0);
 
   return (
-    <section className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-      <h2 className="mb-4 border-b border-gray-800 pb-2 text-lg font-bold text-gray-100">
+    <section className="glass rounded-2xl p-6 animate-fade-in">
+      <h2 className="mb-4 border-b border-white/[0.06] pb-2 text-lg font-bold text-gray-100">
         Skills
       </h2>
+
       <div className="grid grid-cols-3 gap-1.5">
         {SKILL_ORDER.flat().map((skillName) => {
-          // Java stores skill keys with original casing (e.g. "Attack")
           const skill = skills[skillName];
           const level = skill?.level ?? 1;
           const xp = skill?.xp ?? 0;
@@ -51,10 +49,8 @@ export default function SkillsGrid({ skills }: SkillsGridProps) {
           return (
             <div
               key={skillName}
-              className={`relative flex items-center gap-2 rounded-lg border bg-gray-800/60 px-2 py-1.5 transition-colors hover:bg-gray-800 ${
-                isMaxed
-                  ? "skill-maxed border-osrs-gold/50"
-                  : "border-gray-700/50"
+              className={`glass-card relative flex items-center gap-2 rounded-lg px-2 py-1.5 ${
+                isMaxed ? "gold-glow skill-maxed" : ""
               }`}
               onMouseEnter={() => setHoveredSkill(skillName)}
               onMouseLeave={() => setHoveredSkill(null)}
@@ -65,32 +61,44 @@ export default function SkillsGrid({ skills }: SkillsGridProps) {
                 alt={skillName}
                 width={18}
                 height={18}
-                className="flex-shrink-0"
+                className="item-icon flex-shrink-0"
               />
               <span className="flex-1 truncate text-xs text-gray-400">
                 {skillName}
               </span>
               <span
-                className={`text-sm font-bold ${
+                className={`text-sm font-bold tabular-nums ${
                   isMaxed ? "text-osrs-gold" : "text-gray-100"
                 }`}
               >
                 {level}
               </span>
 
+              {/* XP tooltip */}
               {hoveredSkill === skillName && (
-                <div className="absolute -top-8 left-1/2 z-10 -translate-x-1/2 rounded bg-gray-950 px-2 py-1 text-xs text-gray-300 shadow-lg border border-gray-700 whitespace-nowrap">
+                <div
+                  className="glass absolute -top-9 left-1/2 z-20 -translate-x-1/2 rounded-lg px-2.5 py-1 text-xs text-gray-200 whitespace-nowrap"
+                  style={{
+                    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.5)",
+                  }}
+                >
                   {formatNumber(xp)} XP
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-2 w-2 rotate-45 bg-[rgba(10,15,20,0.55)] border-r border-b border-white/[0.08]" />
                 </div>
               )}
             </div>
           );
         })}
 
-        {/* Total cell */}
-        <div className="flex items-center justify-between rounded-lg border border-osrs-gold/30 bg-gray-800/60 px-2 py-1.5">
-          <span className="text-xs font-semibold text-osrs-gold">Total</span>
-          <span className="text-sm font-bold text-osrs-gold">
+        {/* Total row */}
+        <div
+          className="glass-card col-span-3 flex items-center justify-between rounded-lg px-3 py-2 mt-1"
+          style={{
+            borderColor: "rgba(212, 160, 23, 0.25)",
+          }}
+        >
+          <span className="text-sm font-semibold text-osrs-gold">Total</span>
+          <span className="text-lg font-bold text-osrs-gold tabular-nums">
             {formatNumber(totalLevel)}
           </span>
         </div>
