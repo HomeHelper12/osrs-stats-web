@@ -125,12 +125,12 @@ export default function BossGrid({ bosses }: BossGridProps) {
           )}
         </div>
         {suggestions.length > 0 && (
-          <div className="absolute z-20 mt-1 w-full glass rounded-xl overflow-hidden shadow-xl">
+          <div className="absolute z-20 mt-1 w-full rounded-xl overflow-hidden shadow-xl border border-white/10" style={{ background: "rgba(15, 15, 20, 0.95)", backdropFilter: "blur(16px)" }}>
             {suggestions.map((s) => (
               <button
                 key={s.key}
                 onClick={() => selectBoss(s.key)}
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-200 hover:bg-white/10 transition-colors"
+                className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-gray-200 hover:bg-white/10 transition-colors"
               >
                 <BossIcon name={s.key} />
                 <span>{s.label}</span>

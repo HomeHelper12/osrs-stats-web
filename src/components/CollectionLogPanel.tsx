@@ -20,11 +20,24 @@ export default function CollectionLogPanel({
   const [highlightedItem, setHighlightedItem] = useState<string | null>(null);
   const pageRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  const pages = useMemo(
-    () =>
-      Object.entries(collectionLog).sort(([a], [b]) => a.localeCompare(b)),
-    [collectionLog]
-  );
+  const [showEmpty, setShowEmpty] = useState(false);
+
+  const { syncedPages, emptyPages } = useMemo(() => {
+    const synced: [string, ClogPage][] = [];
+    const empty: [string, ClogPage][] = [];
+    Object.entries(collectionLog)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .forEach(([name, page]) => {
+        if (page.items && page.items.length > 0) {
+          synced.push([name, page]);
+        } else {
+          empty.push([name, page]);
+        }
+      });
+    return { syncedPages: synced, emptyPages: empty };
+  }, [collectionLog]);
+
+  const pages = showEmpty ? [...syncedPages, ...emptyPages] : syncedPages;
 
   // Build flat list of all items for search suggestions
   const allItems = useMemo(() => {
@@ -89,7 +102,6 @@ export default function CollectionLogPanel({
           value={totalObtained}
           max={totalItems}
           color="bg-green-500"
-          showPercentage
         />
       </div>
 
@@ -115,25 +127,40 @@ export default function CollectionLogPanel({
           )}
         </div>
         {suggestions.length > 0 && (
-          <div className="absolute z-20 mt-1 w-full glass rounded-xl overflow-hidden shadow-xl">
+          <div className="absolute z-20 mt-1 w-full rounded-xl overflow-hidden shadow-xl border border-white/10" style={{ background: "rgba(15, 15, 20, 0.95)", backdropFilter: "blur(16px)" }}>
             {suggestions.map((s, i) => (
               <button
                 key={i}
                 onClick={() => selectResult(s.pageName, s.type === "item" ? s.label : undefined)}
-                className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-gray-200 hover:bg-white/10 transition-colors"
+                className="flex w-full items-center justify-between px-3 py-2.5 text-left text-sm text-gray-200 hover:bg-white/10 transition-colors"
               >
                 <span>{s.label}</span>
                 {s.type === "item" && "sublabel" in s && (
-                  <span className="text-xs text-gray-500">{s.sublabel}</span>
+                  <span className="text-xs text-gray-400">{s.sublabel}</span>
                 )}
                 {s.type === "page" && (
-                  <span className="text-[10px] uppercase tracking-wider text-gray-500">Page</span>
+                  <span className="text-[10px] uppercase tracking-wider text-gray-400">Page</span>
                 )}
               </button>
             ))}
           </div>
         )}
       </div>
+
+      {/* Info about syncing */}
+      {emptyPages.length > 0 && (
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-xs text-gray-500">
+            {syncedPages.length} pages synced &middot; {emptyPages.length} awaiting in-game visit
+          </p>
+          <button
+            onClick={() => setShowEmpty(!showEmpty)}
+            className="text-xs text-gray-400 hover:text-gray-200 transition-colors"
+          >
+            {showEmpty ? "Hide unsynced" : "Show all"}
+          </button>
+        </div>
+      )}
 
       {/* Page list */}
       <div className="max-h-[28rem] space-y-1.5 overflow-y-auto pr-1">
