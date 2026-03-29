@@ -43,10 +43,17 @@ export async function POST(request: Request) {
     const supabase = createAdminClient()
     const lowerPlayer = playerName.toLowerCase()
 
-    // 1. Upsert all items into player_clog_items (batch to avoid payload limits)
+    // 1. Deduplicate items by itemId (same item can appear on multiple clog pages)
     const BATCH_SIZE = 200
     const now = new Date().toISOString()
-    const upsertRows = items.map((item) => ({
+    const seen = new Map<number, SyncItem>()
+    for (const item of items) {
+      const existing = seen.get(item.itemId)
+      if (!existing || item.quantity > existing.quantity) {
+        seen.set(item.itemId, item)
+      }
+    }
+    const upsertRows = Array.from(seen.values()).map((item) => ({
       player_name: lowerPlayer,
       item_id: item.itemId,
       item_name: item.itemName,
