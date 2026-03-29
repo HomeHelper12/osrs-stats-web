@@ -18,6 +18,10 @@ export const metadata: Metadata = {
   title: "OSRS Account Stats",
   description:
     "Track your Old School RuneScape progress. View skills, bosses, collection log, quests, diaries, and more.",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({
@@ -40,13 +44,7 @@ export default function RootLayout({
               href="/"
               className="flex items-center gap-2 text-xl font-bold tracking-tight text-osrs-gold hover:text-osrs-gold-light transition-colors"
             >
-              <svg
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                className="w-6 h-6"
-              >
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-              </svg>
+              <img src="/icon.png" alt="OSRS Stats" width={28} height={28} className="drop-shadow-lg" />
               OSRS Stats
             </Link>
             <div className="flex items-center gap-4">
