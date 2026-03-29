@@ -98,10 +98,11 @@ export default function CollectionLogPanel({
       {/* Overall progress */}
       <div className="mb-5">
         <ProgressBar
-          label="Items Obtained"
+          label={`Items Obtained — ${totalObtained} / ${totalItems}`}
           value={totalObtained}
           max={totalItems}
           color="bg-green-500"
+          showPercentage
         />
       </div>
 
@@ -254,7 +255,7 @@ export default function CollectionLogPanel({
                         />
                         <span
                           className={`text-xs leading-tight ${
-                            item.obtained ? "text-green-300" : "text-gray-400"
+                            item.obtained ? "text-green-300" : "text-gray-300/70"
                           }`}
                         >
                           {item.name}

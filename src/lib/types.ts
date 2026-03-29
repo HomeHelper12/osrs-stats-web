@@ -156,6 +156,54 @@ export interface SnapshotRow {
 }
 
 // =============================================================================
+// Task system types — matching API responses from /api/tasks/*
+// =============================================================================
+
+/** Task definition from the task_definitions table */
+export interface TaskDefinition {
+  id: string
+  tier: string
+  name: string
+  tip: string | null
+  wiki_link: string | null
+  image_link: string | null
+  display_item_id: number | null
+  verification_method: string | null
+  item_ids: number[]
+  required_count: number
+}
+
+/** A player's assigned task with the full task definition attached */
+export interface PlayerTask {
+  id: number
+  player_name: string
+  task_id: string
+  tier: string
+  status: string
+  assigned_at: string
+  completed_at: string | null
+  task: TaskDefinition
+}
+
+/** Progress counts for a single tier */
+export interface TaskTierProgress {
+  completed: number
+  total: number
+}
+
+/** Full player task state returned by GET /api/tasks/[player] */
+export interface TaskPlayerState {
+  playerName: string
+  activeTasks: PlayerTask[]
+  tierProgress: Record<string, TaskTierProgress>
+  recentCompleted: PlayerTask[]
+  settings: {
+    auto_generate: boolean
+    active_tier: string
+  }
+}
+
+// =============================================================================
 // API response types
 // =============================================================================
 

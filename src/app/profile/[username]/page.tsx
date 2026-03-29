@@ -13,6 +13,7 @@ import LootLog from "@/components/LootLog";
 import DeathLog from "@/components/DeathLog";
 import EventFeed from "@/components/EventFeed";
 import PetList from "@/components/PetList";
+import TasksPanel from "@/components/TasksPanel";
 
 // ---------------------------------------------------------------------------
 // Tab definitions
@@ -25,7 +26,8 @@ type TabId =
   | "quests"
   | "diaries"
   | "combat"
-  | "activity";
+  | "activity"
+  | "tasks";
 
 interface TabDef {
   id: TabId;
@@ -129,6 +131,24 @@ const TABS: TabDef[] = [
         aria-hidden="true"
       >
         <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" />
+      </svg>
+    ),
+  },
+  {
+    id: "tasks",
+    label: "Tasks",
+    icon: (
+      <svg
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        className="h-5 w-5"
+        aria-hidden="true"
+      >
+        <path
+          fillRule="evenodd"
+          d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 100-12 6 6 0 000 12zm0-3a3 3 0 100-6 3 3 0 000 6zm0-2a1 1 0 100-2 1 1 0 000 2z"
+          clipRule="evenodd"
+        />
       </svg>
     ),
   },
@@ -325,6 +345,13 @@ export default function ProfilePage({
               (!snapshot.deaths || snapshot.deaths.length === 0) && (
                 <EmptyState message="No activity data available." />
               )}
+          </div>
+        );
+
+      case "tasks":
+        return (
+          <div className="animate-fade-in">
+            <TasksPanel playerName={username} />
           </div>
         );
 
