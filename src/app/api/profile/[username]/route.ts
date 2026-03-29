@@ -8,14 +8,25 @@ export async function GET(
     const { username } = await params
     const lowerUsername = username.toLowerCase()
 
-    // 1. Look up account by lowercase username
-    const { data: account, error: accountError } = await supabase
+    // 1. Look up account by current username
+    let { data: account } = await supabase
       .from('accounts')
       .select('*')
       .eq('username', lowerUsername)
       .single()
 
-    if (accountError || !account) {
+    // If not found, check previous names (player may have renamed)
+    if (!account) {
+      const { data: found } = await supabase
+        .from('accounts')
+        .select('*')
+        .contains('previous_names', [lowerUsername])
+        .single()
+
+      account = found
+    }
+
+    if (!account) {
       return Response.json(
         { error: `Account not found: "${username}"` },
         { status: 404 }
