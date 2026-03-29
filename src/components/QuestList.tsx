@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { QuestData } from "@/lib/types";
+import { getQuestPoints, isMiniquest } from "@/lib/quest-points";
 import ProgressBar from "./ProgressBar";
 
 interface QuestListProps {
@@ -137,17 +138,28 @@ export default function QuestList({ quests, questPoints }: QuestListProps) {
               {/* Quest list */}
               {isExpanded && items.length > 0 && (
                 <div className="max-h-72 overflow-y-auto border-t border-white/5 animate-fade-in">
-                  {items.map((quest) => (
-                    <div
-                      key={quest.name}
-                      className={`flex items-center justify-between px-4 py-2 text-sm transition-colors hover:bg-white/[0.02] ${config.bgTint}`}
-                    >
-                      <span className="text-gray-300">{quest.name}</span>
-                      <span className="glass-light rounded-md px-2 py-0.5 text-xs text-gray-500">
-                        {quest.questPoints ?? 0} QP
-                      </span>
-                    </div>
-                  ))}
+                  {items.map((quest) => {
+                    const qp = getQuestPoints(quest.name, quest.questPoints ?? 0);
+                    const mini = isMiniquest(quest.name);
+                    return (
+                      <div
+                        key={quest.name}
+                        className={`flex items-center justify-between px-4 py-2 text-sm transition-colors hover:bg-white/[0.02] ${config.bgTint}`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-300">{quest.name}</span>
+                          {mini && (
+                            <span className="rounded bg-gray-700/60 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-gray-400">
+                              Sub
+                            </span>
+                          )}
+                        </div>
+                        <span className="glass-light rounded-md px-2 py-0.5 text-xs text-gray-500 shrink-0">
+                          {qp} QP
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
