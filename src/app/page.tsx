@@ -47,7 +47,7 @@ export default function Home() {
 
         <div className="mt-12 grid grid-cols-2 gap-6 text-center sm:grid-cols-4">
           <div>
-            <p className="text-2xl font-bold text-gray-100">23</p>
+            <p className="text-2xl font-bold text-gray-100">24</p>
             <p className="text-sm text-gray-500">Skills</p>
           </div>
           <div>
